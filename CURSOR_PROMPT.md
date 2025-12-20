@@ -76,4 +76,3 @@ Do NOT implement batch processing or map search in this step.
 
 After completing each step:
 - Clearly state what is implemented
-- Explain how the user can verify correctness
