@@ -9,12 +9,24 @@
 <body>
     <div class="container">
         <h1>Old Photo EXIF Metadata Editor</h1>
-        <p class="subtitle">Step 1 MVP - Single Image Processing</p>
+        <p class="subtitle">Step 2 - Batch Processing Support</p>
 
         <div class="section">
-            <h2>1. Upload JPEG File</h2>
-            <input type="file" id="fileInput" accept="image/jpeg,.jpg,.jpeg">
+            <h2>1. Upload JPEG Files</h2>
+            <input type="file" id="fileInput" accept="image/jpeg,.jpg,.jpeg" multiple>
             <div id="fileInfo" class="info-box"></div>
+            
+            <!-- Photo list for batch selection -->
+            <div id="photoListContainer" style="display: none;">
+                <div class="photo-list-header">
+                    <label class="select-all-label">
+                        <input type="checkbox" id="selectAllCheckbox">
+                        <span>Select All</span>
+                    </label>
+                    <span id="selectionCount" class="selection-count"></span>
+                </div>
+                <div id="photoList" class="photo-list"></div>
+            </div>
         </div>
 
         <div class="section">
@@ -46,7 +58,13 @@
         </div>
 
         <div class="section">
-            <button id="processBtn" class="primary-btn" disabled>Process & Download</button>
+            <button id="processBtn" class="primary-btn" disabled>Process Selected & Download</button>
+            <div id="progressContainer" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="progressBar" class="progress-fill"></div>
+                </div>
+                <div id="progressText" class="progress-text"></div>
+            </div>
             <div id="status" class="status-box"></div>
         </div>
 

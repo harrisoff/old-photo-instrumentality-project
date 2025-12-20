@@ -1,8 +1,15 @@
 /**
- * Old Photo EXIF Metadata Editor - MVP (Step 1)
+ * Old Photo EXIF Metadata Editor - Step 2 (Batch Processing)
  * 
  * This tool allows users to add EXIF metadata to scanned JPEG photos.
  * It uses piexifjs to write EXIF data without re-encoding the image.
+ * 
+ * Step 2 Features:
+ * - Multiple file upload
+ * - Batch selection with checkboxes
+ * - Select All functionality
+ * - Progress indicator during batch processing
+ * - Individual download for each processed photo
  * 
  * Note: Originally planned to use exiftool.wasm, but no browser-ready
  * WASM build is readily available. piexifjs provides the same functionality:
@@ -13,16 +20,24 @@
  */
 
 // Global state
-let selectedFile = null;
+let uploadedFiles = []; // Array to store all uploaded files
+let selectedFileIndices = new Set(); // Track which files are selected
 
 // DOM Elements
 const fileInput = document.getElementById('fileInput');
 const fileInfo = document.getElementById('fileInfo');
+const photoListContainer = document.getElementById('photoListContainer');
+const photoList = document.getElementById('photoList');
+const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+const selectionCount = document.getElementById('selectionCount');
 const dateInput = document.getElementById('dateInput');
 const timeInput = document.getElementById('timeInput');
 const latitudeInput = document.getElementById('latitudeInput');
 const longitudeInput = document.getElementById('longitudeInput');
 const processBtn = document.getElementById('processBtn');
+const progressContainer = document.getElementById('progressContainer');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
 const statusBox = document.getElementById('status');
 
 /**
@@ -41,33 +56,43 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Handle file selection
+ * Handle file selection - now supports multiple files
  */
 fileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
+    const files = Array.from(event.target.files);
     
-    if (!file) {
-        selectedFile = null;
+    if (files.length === 0) {
+        uploadedFiles = [];
+        selectedFileIndices.clear();
+        photoListContainer.style.display = 'none';
         fileInfo.textContent = '';
         processBtn.disabled = true;
         return;
     }
     
-    // Validate JPEG file
-    if (!file.type.match('image/jpeg')) {
-        fileInfo.textContent = 'Error: Please select a JPEG file';
+    // Filter only JPEG files
+    const jpegFiles = files.filter(file => file.type.match('image/jpeg'));
+    
+    if (jpegFiles.length === 0) {
+        fileInfo.textContent = 'Error: Please select JPEG files only';
         fileInfo.style.color = 'red';
-        selectedFile = null;
+        uploadedFiles = [];
+        selectedFileIndices.clear();
+        photoListContainer.style.display = 'none';
         processBtn.disabled = true;
         return;
     }
     
-    selectedFile = file;
-    fileInfo.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+    // Store uploaded files
+    uploadedFiles = jpegFiles;
+    
+    // Show file info
+    const totalSize = jpegFiles.reduce((sum, file) => sum + file.size, 0);
+    fileInfo.textContent = `Uploaded: ${jpegFiles.length} file(s) (${formatFileSize(totalSize)})`;
     fileInfo.style.color = 'green';
     
-    // Enable process button if file is selected
-    processBtn.disabled = false;
+    // Display photo list for selection
+    displayPhotoList();
     
     // Set default date/time to current if empty
     if (!dateInput.value) {
@@ -76,6 +101,95 @@ fileInput.addEventListener('change', (event) => {
         timeInput.value = now.toTimeString().split(' ')[0];
     }
 });
+
+/**
+ * Display photo list with checkboxes for batch selection
+ */
+function displayPhotoList() {
+    photoList.innerHTML = '';
+    selectedFileIndices.clear();
+    
+    uploadedFiles.forEach((file, index) => {
+        const photoItem = document.createElement('div');
+        photoItem.className = 'photo-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `photo-${index}`;
+        checkbox.className = 'photo-checkbox';
+        checkbox.dataset.index = index;
+        
+        const label = document.createElement('label');
+        label.htmlFor = `photo-${index}`;
+        label.className = 'photo-label';
+        
+        const fileName = document.createElement('span');
+        fileName.className = 'photo-name';
+        fileName.textContent = file.name;
+        
+        const fileSize = document.createElement('span');
+        fileSize.className = 'photo-size';
+        fileSize.textContent = formatFileSize(file.size);
+        
+        label.appendChild(fileName);
+        label.appendChild(fileSize);
+        
+        photoItem.appendChild(checkbox);
+        photoItem.appendChild(label);
+        
+        photoList.appendChild(photoItem);
+        
+        // Add change listener to each checkbox
+        checkbox.addEventListener('change', updateSelection);
+    });
+    
+    photoListContainer.style.display = 'block';
+    selectAllCheckbox.checked = false;
+    updateSelectionCount();
+}
+
+/**
+ * Handle Select All checkbox
+ */
+selectAllCheckbox.addEventListener('change', (event) => {
+    const checkboxes = photoList.querySelectorAll('.photo-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = event.target.checked;
+    });
+    updateSelection();
+});
+
+/**
+ * Update selection state when checkboxes change
+ */
+function updateSelection() {
+    selectedFileIndices.clear();
+    
+    const checkboxes = photoList.querySelectorAll('.photo-checkbox');
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedFileIndices.add(parseInt(checkbox.dataset.index));
+        }
+    });
+    
+    updateSelectionCount();
+    
+    // Update Select All checkbox state
+    const allChecked = checkboxes.length > 0 && 
+                       Array.from(checkboxes).every(cb => cb.checked);
+    selectAllCheckbox.checked = allChecked;
+}
+
+/**
+ * Update selection count display
+ */
+function updateSelectionCount() {
+    const count = selectedFileIndices.size;
+    selectionCount.textContent = `${count} of ${uploadedFiles.length} selected`;
+    
+    // Enable process button if at least one file is selected
+    processBtn.disabled = count === 0;
+}
 
 /**
  * Format file size for display
@@ -87,11 +201,11 @@ function formatFileSize(bytes) {
 }
 
 /**
- * Process the image and add EXIF metadata
+ * Process the selected images and add EXIF metadata (Batch Processing)
  */
 processBtn.addEventListener('click', async () => {
-    if (!selectedFile) {
-        updateStatus('Please select a file first', 'error');
+    if (selectedFileIndices.size === 0) {
+        updateStatus('Please select at least one file', 'error');
         return;
     }
     
@@ -113,32 +227,99 @@ processBtn.addEventListener('click', async () => {
     
     try {
         processBtn.disabled = true;
-        updateStatus('Processing image...', 'processing');
+        progressContainer.style.display = 'block';
         
-        // Read file as Data URL
-        const dataUrl = await readFileAsDataURL(selectedFile);
+        const selectedFiles = Array.from(selectedFileIndices)
+            .map(index => uploadedFiles[index]);
         
-        // Prepare EXIF metadata
+        const totalFiles = selectedFiles.length;
+        let processedCount = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        
+        updateStatus(`Processing ${totalFiles} file(s)...`, 'processing');
+        
+        // Prepare EXIF metadata once (same for all photos)
         const metadata = prepareMetadata();
         console.log('Metadata to write:', metadata);
         
-        // Write metadata using piexifjs
-        updateStatus('Writing EXIF metadata...', 'processing');
-        const modifiedDataUrl = writeExifData(dataUrl, metadata);
+        // Process each file sequentially
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            
+            try {
+                // Update progress
+                updateProgress(processedCount, totalFiles, `Processing: ${file.name}`);
+                
+                // Read file as Data URL
+                const dataUrl = await readFileAsDataURL(file);
+                
+                // Write metadata using piexifjs
+                const modifiedDataUrl = writeExifData(dataUrl, metadata);
+                
+                // Download the modified image
+                downloadModifiedImage(modifiedDataUrl, file.name);
+                
+                successCount++;
+                
+                // Small delay between downloads to avoid browser blocking
+                if (i < selectedFiles.length - 1) {
+                    await sleep(100);
+                }
+                
+            } catch (error) {
+                console.error(`Error processing ${file.name}:`, error);
+                errorCount++;
+            }
+            
+            processedCount++;
+        }
         
-        // Download the modified image
-        updateStatus('Creating download...', 'processing');
-        downloadModifiedImage(modifiedDataUrl, selectedFile.name);
+        // Update final progress
+        updateProgress(totalFiles, totalFiles, 'Complete!');
         
-        updateStatus('Success! Image processed and downloaded. Check the verification instructions below.', 'success');
+        // Show final status
+        if (errorCount === 0) {
+            updateStatus(
+                `Success! All ${successCount} file(s) processed and downloaded. Check the verification instructions below.`,
+                'success'
+            );
+        } else {
+            updateStatus(
+                `Completed with ${successCount} success and ${errorCount} error(s). Check console for details.`,
+                'error'
+            );
+        }
+        
+        // Hide progress bar after a delay
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+        }, 3000);
         
     } catch (error) {
         updateStatus('Error: ' + error.message, 'error');
         console.error('Processing error:', error);
+        progressContainer.style.display = 'none';
     } finally {
         processBtn.disabled = false;
     }
 });
+
+/**
+ * Update progress bar and text
+ */
+function updateProgress(current, total, message) {
+    const percentage = (current / total) * 100;
+    progressBar.style.width = percentage + '%';
+    progressText.textContent = `${message} (${current}/${total})`;
+}
+
+/**
+ * Sleep utility for adding delays
+ */
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * Read file as Data URL
