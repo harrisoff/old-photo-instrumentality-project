@@ -2,10 +2,11 @@
 
 You are implementing a front-end project.
 
-You MUST read and strictly follow `requirements.md`.
-That file is the single source of truth.
+You MUST read and strictly follow `requirements.md`. That file is the single source of truth.
 
 Any new requirement must be written to requirements.md and committed before implementation.
+
+When requirements.md changes, you MUST re-read the entire file before implementing anything. Do not rely on memory or previous context.
 
 ---
 
