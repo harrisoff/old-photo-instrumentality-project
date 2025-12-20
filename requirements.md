@@ -61,6 +61,10 @@ Must support at least:
 - Assigning the same datetime to all photos
 - Incrementing datetime sequentially per photo
 
+Default values:
+- Date: `2000-01-01`
+- Time: `00:00:00`
+
 ---
 
 ### 3.3 Batch Processing
