@@ -88,6 +88,11 @@ GPS Input:
 - Latitude range: -90 to 90 (negative for South, positive for North)
 - Longitude range: -180 to 180 (negative for West, positive for East)
 
+GPS Coordinate Lookup:
+- Provide link to Baidu Maps Coordinate Picker: https://lbs.baidu.com/maptool/getpoint
+- Users can search place names and get coordinates
+- Display as a helpful tip on the page
+
 GPS EXIF rules:
 - Latitude: N / S
 - Longitude: E / W
