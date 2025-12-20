@@ -113,6 +113,18 @@ label {
     font-style: italic;
 }
 
+.help-text a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.help-text a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
 /* Info box */
 .info-box {
     margin-top: 10px;
