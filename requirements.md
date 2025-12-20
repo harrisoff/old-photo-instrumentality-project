@@ -77,7 +77,14 @@ Must support at least:
 - Convert place names to GPS coordinates
 - Correctly write EXIF GPS fields
 
-GPS rules:
+GPS Input:
+- Single input field for GPS coordinates
+- Format: `latitude,longitude` (comma-separated)
+- Accept with or without space after comma (e.g., `39.9042,116.4074` or `39.9042, 116.4074`)
+- Latitude range: -90 to 90 (negative for South, positive for North)
+- Longitude range: -180 to 180 (negative for West, positive for East)
+
+GPS EXIF rules:
 - Latitude: N / S
 - Longitude: E / W
 - Decimal degrees are acceptable for exiftool
