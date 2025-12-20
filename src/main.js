@@ -29,8 +29,7 @@ const photoList = document.getElementById('photoList');
 const photoCount = document.getElementById('photoCount');
 const dateInput = document.getElementById('dateInput');
 const timeInput = document.getElementById('timeInput');
-const latitudeInput = document.getElementById('latitudeInput');
-const longitudeInput = document.getElementById('longitudeInput');
+const gpsInput = document.getElementById('gpsInput');
 const processBtn = document.getElementById('processBtn');
 const progressContainer = document.getElementById('progressContainer');
 const progressBar = document.getElementById('progressBar');
@@ -91,13 +90,6 @@ fileInput.addEventListener('change', (event) => {
     
     // Enable process button
     processBtn.disabled = false;
-    
-    // Set default date/time to current if empty
-    if (!dateInput.value) {
-        const now = new Date();
-        dateInput.value = now.toISOString().split('T')[0];
-        timeInput.value = now.toTimeString().split(' ')[0];
-    }
 });
 
 /**
@@ -157,8 +149,15 @@ processBtn.addEventListener('click', async () => {
         return;
     }
     
-    if (!latitudeInput.value || !longitudeInput.value) {
+    if (!gpsInput.value || !gpsInput.value.trim()) {
         updateStatus('Please enter GPS coordinates', 'error');
+        return;
+    }
+    
+    // Parse and validate GPS coordinates
+    const gpsCoords = parseGPSInput(gpsInput.value);
+    if (!gpsCoords) {
+        updateStatus('Invalid GPS format. Use: latitude, longitude (e.g., 39.9042, 116.4074)', 'error');
         return;
     }
     
@@ -256,6 +255,41 @@ function sleep(ms) {
 }
 
 /**
+ * Parse GPS input in format "latitude, longitude" or "latitude,longitude"
+ * Returns {latitude, longitude} or null if invalid
+ */
+function parseGPSInput(input) {
+    if (!input || !input.trim()) {
+        return null;
+    }
+    
+    // Split by comma
+    const parts = input.split(',').map(p => p.trim());
+    
+    if (parts.length !== 2) {
+        return null;
+    }
+    
+    const latitude = parseFloat(parts[0]);
+    const longitude = parseFloat(parts[1]);
+    
+    // Validate ranges
+    if (isNaN(latitude) || isNaN(longitude)) {
+        return null;
+    }
+    
+    if (latitude < -90 || latitude > 90) {
+        return null;
+    }
+    
+    if (longitude < -180 || longitude > 180) {
+        return null;
+    }
+    
+    return { latitude, longitude };
+}
+
+/**
  * Read file as Data URL
  */
 function readFileAsDataURL(file) {
@@ -277,9 +311,10 @@ function prepareMetadata() {
     const time = timeInput.value; // HH:mm:ss
     const exifDateTime = date.replace(/-/g, ':') + ' ' + time;
     
-    // Parse GPS coordinates
-    const latitude = parseFloat(latitudeInput.value);
-    const longitude = parseFloat(longitudeInput.value);
+    // Parse GPS coordinates from merged input
+    const gpsCoords = parseGPSInput(gpsInput.value);
+    const latitude = gpsCoords.latitude;
+    const longitude = gpsCoords.longitude;
     
     // Determine GPS reference (N/S for latitude, E/W for longitude)
     const latRef = latitude >= 0 ? 'N' : 'S';
