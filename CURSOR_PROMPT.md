@@ -5,6 +5,8 @@ You are implementing a front-end project.
 You MUST read and strictly follow `requirements.md`.
 That file is the single source of truth.
 
+Any new requirement must be written to requirements.md and committed before implementation.
+
 ---
 
 ## Non-Negotiable Rules
