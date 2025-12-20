@@ -52,6 +52,7 @@ YYYY:MM:DD HH:mm:SS
 
 - Support selecting multiple JPEG files
 - Use File / Blob / ArrayBuffer APIs
+- Support batch selection for processing
 
 ---
 
@@ -63,7 +64,16 @@ Must support at least:
 
 ---
 
-### 3.3 Location & GPS
+### 3.3 Batch Processing
+
+- Allow selecting multiple photos from the imported list
+- Support "Select All" functionality
+- Process selected photos in batch with the same metadata
+- Show progress indicator during batch processing
+
+---
+
+### 3.4 Location & GPS
 
 - Use a map API (Baidu Maps preferred)
 - Convert place names to GPS coordinates
@@ -91,8 +101,7 @@ JPEG File
 
 ## 5. Export
 
-- Single file download
-- Batch ZIP download (later step)
+- Download all processed photos separately
 
 ---
 
