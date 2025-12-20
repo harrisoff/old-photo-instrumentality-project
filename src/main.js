@@ -6,8 +6,7 @@
  * 
  * Step 2 Features:
  * - Multiple file upload
- * - Batch selection with checkboxes
- * - Select All functionality
+ * - Process all uploaded photos in batch
  * - Progress indicator during batch processing
  * - Individual download for each processed photo
  * 
@@ -21,15 +20,13 @@
 
 // Global state
 let uploadedFiles = []; // Array to store all uploaded files
-let selectedFileIndices = new Set(); // Track which files are selected
 
 // DOM Elements
 const fileInput = document.getElementById('fileInput');
 const fileInfo = document.getElementById('fileInfo');
 const photoListContainer = document.getElementById('photoListContainer');
 const photoList = document.getElementById('photoList');
-const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-const selectionCount = document.getElementById('selectionCount');
+const photoCount = document.getElementById('photoCount');
 const dateInput = document.getElementById('dateInput');
 const timeInput = document.getElementById('timeInput');
 const latitudeInput = document.getElementById('latitudeInput');
@@ -63,7 +60,6 @@ fileInput.addEventListener('change', (event) => {
     
     if (files.length === 0) {
         uploadedFiles = [];
-        selectedFileIndices.clear();
         photoListContainer.style.display = 'none';
         fileInfo.textContent = '';
         processBtn.disabled = true;
@@ -77,7 +73,6 @@ fileInput.addEventListener('change', (event) => {
         fileInfo.textContent = 'Error: Please select JPEG files only';
         fileInfo.style.color = 'red';
         uploadedFiles = [];
-        selectedFileIndices.clear();
         photoListContainer.style.display = 'none';
         processBtn.disabled = true;
         return;
@@ -91,8 +86,11 @@ fileInput.addEventListener('change', (event) => {
     fileInfo.textContent = `Uploaded: ${jpegFiles.length} file(s) (${formatFileSize(totalSize)})`;
     fileInfo.style.color = 'green';
     
-    // Display photo list for selection
+    // Display photo list
     displayPhotoList();
+    
+    // Enable process button
+    processBtn.disabled = false;
     
     // Set default date/time to current if empty
     if (!dateInput.value) {
@@ -103,92 +101,31 @@ fileInput.addEventListener('change', (event) => {
 });
 
 /**
- * Display photo list with checkboxes for batch selection
+ * Display photo list (no checkboxes, just list all files)
  */
 function displayPhotoList() {
     photoList.innerHTML = '';
-    selectedFileIndices.clear();
     
     uploadedFiles.forEach((file, index) => {
         const photoItem = document.createElement('div');
         photoItem.className = 'photo-item';
         
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `photo-${index}`;
-        checkbox.className = 'photo-checkbox';
-        checkbox.dataset.index = index;
-        
-        const label = document.createElement('label');
-        label.htmlFor = `photo-${index}`;
-        label.className = 'photo-label';
-        
         const fileName = document.createElement('span');
         fileName.className = 'photo-name';
-        fileName.textContent = file.name;
+        fileName.textContent = `${index + 1}. ${file.name}`;
         
         const fileSize = document.createElement('span');
         fileSize.className = 'photo-size';
         fileSize.textContent = formatFileSize(file.size);
         
-        label.appendChild(fileName);
-        label.appendChild(fileSize);
-        
-        photoItem.appendChild(checkbox);
-        photoItem.appendChild(label);
+        photoItem.appendChild(fileName);
+        photoItem.appendChild(fileSize);
         
         photoList.appendChild(photoItem);
-        
-        // Add change listener to each checkbox
-        checkbox.addEventListener('change', updateSelection);
     });
     
     photoListContainer.style.display = 'block';
-    selectAllCheckbox.checked = false;
-    updateSelectionCount();
-}
-
-/**
- * Handle Select All checkbox
- */
-selectAllCheckbox.addEventListener('change', (event) => {
-    const checkboxes = photoList.querySelectorAll('.photo-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = event.target.checked;
-    });
-    updateSelection();
-});
-
-/**
- * Update selection state when checkboxes change
- */
-function updateSelection() {
-    selectedFileIndices.clear();
-    
-    const checkboxes = photoList.querySelectorAll('.photo-checkbox');
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedFileIndices.add(parseInt(checkbox.dataset.index));
-        }
-    });
-    
-    updateSelectionCount();
-    
-    // Update Select All checkbox state
-    const allChecked = checkboxes.length > 0 && 
-                       Array.from(checkboxes).every(cb => cb.checked);
-    selectAllCheckbox.checked = allChecked;
-}
-
-/**
- * Update selection count display
- */
-function updateSelectionCount() {
-    const count = selectedFileIndices.size;
-    selectionCount.textContent = `${count} of ${uploadedFiles.length} selected`;
-    
-    // Enable process button if at least one file is selected
-    processBtn.disabled = count === 0;
+    photoCount.textContent = `${uploadedFiles.length} file(s)`;
 }
 
 /**
@@ -201,11 +138,11 @@ function formatFileSize(bytes) {
 }
 
 /**
- * Process the selected images and add EXIF metadata (Batch Processing)
+ * Process all uploaded images and add EXIF metadata (Batch Processing)
  */
 processBtn.addEventListener('click', async () => {
-    if (selectedFileIndices.size === 0) {
-        updateStatus('Please select at least one file', 'error');
+    if (uploadedFiles.length === 0) {
+        updateStatus('Please upload files first', 'error');
         return;
     }
     
@@ -229,10 +166,7 @@ processBtn.addEventListener('click', async () => {
         processBtn.disabled = true;
         progressContainer.style.display = 'block';
         
-        const selectedFiles = Array.from(selectedFileIndices)
-            .map(index => uploadedFiles[index]);
-        
-        const totalFiles = selectedFiles.length;
+        const totalFiles = uploadedFiles.length;
         let processedCount = 0;
         let successCount = 0;
         let errorCount = 0;
@@ -244,8 +178,8 @@ processBtn.addEventListener('click', async () => {
         console.log('Metadata to write:', metadata);
         
         // Process each file sequentially
-        for (let i = 0; i < selectedFiles.length; i++) {
-            const file = selectedFiles[i];
+        for (let i = 0; i < uploadedFiles.length; i++) {
+            const file = uploadedFiles[i];
             
             try {
                 // Update progress
@@ -263,7 +197,7 @@ processBtn.addEventListener('click', async () => {
                 successCount++;
                 
                 // Small delay between downloads to avoid browser blocking
-                if (i < selectedFiles.length - 1) {
+                if (i < uploadedFiles.length - 1) {
                     await sleep(100);
                 }
                 

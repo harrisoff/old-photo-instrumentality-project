@@ -216,7 +216,7 @@ code {
     color: #d63384;
 }
 
-/* Photo list for batch selection */
+/* Photo list display */
 .photo-list-header {
     display: flex;
     justify-content: space-between;
@@ -228,22 +228,12 @@ code {
     margin-bottom: 10px;
 }
 
-.select-all-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
+.photo-count-label {
     font-weight: 600;
     color: #555;
 }
 
-.select-all-label input[type="checkbox"] {
-    margin-right: 8px;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-}
-
-.selection-count {
+.photo-count {
     color: #667eea;
     font-weight: 600;
     font-size: 0.9em;
@@ -258,35 +248,14 @@ code {
 
 .photo-item {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     padding: 12px;
     border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
 }
 
 .photo-item:last-child {
     border-bottom: none;
-}
-
-.photo-item:hover {
-    background-color: #f8f9fa;
-}
-
-.photo-checkbox {
-    margin-right: 12px;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-.photo-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex: 1;
-    cursor: pointer;
-    font-weight: normal;
 }
 
 .photo-name {
