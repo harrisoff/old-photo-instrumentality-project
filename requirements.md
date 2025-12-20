@@ -52,7 +52,6 @@ YYYY:MM:DD HH:mm:SS
 
 - Support selecting multiple JPEG files
 - Use File / Blob / ArrayBuffer APIs
-- Support batch selection for processing
 
 ---
 
@@ -67,8 +66,7 @@ Must support at least:
 ### 3.3 Batch Processing
 
 - Allow selecting multiple photos from the imported list
-- Support "Select All" functionality
-- Process selected photos in batch with the same metadata
+- Process all photos in batch with the same metadata
 - Show progress indicator during batch processing
 
 ---
