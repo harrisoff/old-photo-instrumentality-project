@@ -190,32 +190,6 @@ small {
     box-shadow: none;
 }
 
-/* Verification info */
-.verification-info {
-    background: white;
-    padding: 15px;
-    border-radius: 6px;
-}
-
-.verification-info ul {
-    margin-left: 20px;
-    margin-top: 5px;
-}
-
-.verification-info li {
-    margin-bottom: 8px;
-    color: #555;
-}
-
-code {
-    background: #f4f4f4;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-family: "Monaco", "Courier New", monospace;
-    font-size: 0.9em;
-    color: #d63384;
-}
-
 /* Photo list display */
 .photo-list-header {
     display: flex;
