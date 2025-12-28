@@ -133,6 +133,14 @@ label {
     text-decoration: underline;
 }
 
+.help-text ul {
+    padding-left: 20px;
+}
+
+.help-text li {
+    list-style-position: inside;
+}
+
 /* Info box */
 .info-box {
     margin-top: 10px;
