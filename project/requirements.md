@@ -63,7 +63,24 @@ Must support at least:
 
 Default values:
 - Date: `2000-01-01`
-- Time: `00:00:00`
+- Time: `12:00:00`
+
+Partial time input:
+- Allow users to input partial dates/times in any combination:
+  - Year only (YYYY)
+  - Year and month (YYYY-MM)
+  - Date without time (YYYY-MM-DD)
+  - Date with hour only (YYYY-MM-DD HH)
+  - Date with hour and minute (YYYY-MM-DD HH:MM)
+  - Any other partial combination of date and time components
+- When time input is incomplete, auto-complete missing components with default values:
+  - Missing month: use January (01)
+  - Missing day: use 1st (01)
+  - Missing hour: use 12 (12:00:00 PM)
+  - Missing minute: use 00
+  - Missing second: use 00
+- EXIF specification requires complete datetime format: `YYYY:MM:DD HH:MM:SS`
+- Auto-completion ensures EXIF compliance while allowing flexible user input
 
 ---
 
