@@ -32,13 +32,15 @@ Original files must never be modified.
 - Metadata must be written as standard EXIF fields
 
 Required EXIF fields:
-- `DateTimeOriginal`
-- `CreateDate`
-- `ModifyDate`
-- `GPSLatitude`
-- `GPSLongitude`
-- `GPSLatitudeRef`
-- `GPSLongitudeRef`
+- `DateTimeOriginal` (REQUIRED)
+- `CreateDate` (REQUIRED)
+- `ModifyDate` (REQUIRED)
+
+Optional EXIF fields:
+- `GPSLatitude` (OPTIONAL)
+- `GPSLongitude` (OPTIONAL)
+- `GPSLatitudeRef` (OPTIONAL)
+- `GPSLongitudeRef` (OPTIONAL)
 
 Datetime format:
 
@@ -56,6 +58,8 @@ YYYY:MM:DD HH:mm:SS
 ---
 
 ### 3.2 Time Input
+
+**Time is REQUIRED** - users must provide time information for all photos.
 
 Must support at least:
 - Assigning the same datetime to all photos
@@ -94,9 +98,11 @@ Partial time input:
 
 ### 3.4 Location & GPS
 
+**GPS coordinates are OPTIONAL** - users may choose to add location information or skip it.
+
 - Use a map API (Baidu Maps preferred)
 - Convert place names to GPS coordinates
-- Correctly write EXIF GPS fields
+- Correctly write EXIF GPS fields when provided
 
 GPS Input:
 - Single input field for GPS coordinates
