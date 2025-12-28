@@ -121,9 +121,11 @@ GPS Input:
 - Longitude range: -180 to 180 (negative for West, positive for East)
 
 GPS Coordinate Lookup:
-- Provide link to Baidu Maps Coordinate Picker: https://lbs.baidu.com/maptool/getpoint
+- Provide links to coordinate picker tools:
+  - Baidu Maps Coordinate Picker: https://lbs.baidu.com/maptool/getpoint
+  - Map Coordinates: https://www.mapcoordinates.net/
 - Users can search place names and get coordinates
-- Display as a helpful tip on the page
+- Display as helpful tips on the page
 
 GPS EXIF rules:
 - Latitude: N / S
