@@ -86,6 +86,15 @@ Partial time input:
 - EXIF specification requires complete datetime format: `YYYY:MM:DD HH:MM:SS`
 - Auto-completion ensures EXIF compliance while allowing flexible user input
 
+Time precision:
+- EXIF specification allows setting time precision
+- Provide a select field to choose time precision
+- Options:
+  - Year
+  - Month
+  - Date
+- Default value: Date
+
 ---
 
 ### 3.3 Batch Processing
