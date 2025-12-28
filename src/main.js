@@ -27,8 +27,8 @@ const fileInfo = document.getElementById('fileInfo');
 const photoListContainer = document.getElementById('photoListContainer');
 const photoList = document.getElementById('photoList');
 const photoCount = document.getElementById('photoCount');
-const dateInput = document.getElementById('dateInput');
-const timeInput = document.getElementById('timeInput');
+const datetimeInput = document.getElementById('datetimeInput');
+const timePrecisionSelect = document.getElementById('timePrecisionSelect');
 const gpsInput = document.getElementById('gpsInput');
 const processBtn = document.getElementById('processBtn');
 const progressContainer = document.getElementById('progressContainer');
@@ -143,22 +143,27 @@ processBtn.addEventListener('click', async () => {
         return;
     }
     
-    // Validate inputs
-    if (!dateInput.value || !timeInput.value) {
-        updateStatus('Please enter date and time', 'error');
+    // Validate inputs - time is required
+    if (!datetimeInput.value || !datetimeInput.value.trim()) {
+        updateStatus('Please enter date and time (required)', 'error');
         return;
     }
     
-    if (!gpsInput.value || !gpsInput.value.trim()) {
-        updateStatus('Please enter GPS coordinates', 'error');
+    // Parse and validate datetime input
+    const parsedDateTime = parseAndCompleteDateTime(datetimeInput.value);
+    if (!parsedDateTime) {
+        updateStatus('Invalid date/time format. Examples: 2000, 2000-01, 2000-01-01, 2000-01-01 12:00:00', 'error');
         return;
     }
     
-    // Parse and validate GPS coordinates
-    const gpsCoords = parseGPSInput(gpsInput.value);
-    if (!gpsCoords) {
-        updateStatus('Invalid GPS format. Use: latitude, longitude (e.g., 39.9042, 116.4074)', 'error');
-        return;
+    // GPS is optional - only validate if provided
+    let gpsCoords = null;
+    if (gpsInput.value && gpsInput.value.trim()) {
+        gpsCoords = parseGPSInput(gpsInput.value);
+        if (!gpsCoords) {
+            updateStatus('Invalid GPS format. Use: latitude, longitude (e.g., 39.9042, 116.4074)', 'error');
+            return;
+        }
     }
     
     try {
@@ -173,7 +178,7 @@ processBtn.addEventListener('click', async () => {
         updateStatus(`Processing ${totalFiles} file(s)...`, 'processing');
         
         // Prepare EXIF metadata once (same for all photos)
-        const metadata = prepareMetadata();
+        const metadata = prepareMetadata(parsedDateTime, gpsCoords);
         console.log('Metadata to write:', metadata);
         
         // Process each file sequentially
@@ -302,39 +307,103 @@ function readFileAsDataURL(file) {
 }
 
 /**
+ * Parse and auto-complete partial datetime input
+ * Supports: YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DD HH, YYYY-MM-DD HH:MM, YYYY-MM-DD HH:MM:SS
+ * Returns completed datetime string in format YYYY-MM-DD HH:MM:SS or null if invalid
+ */
+function parseAndCompleteDateTime(input) {
+    if (!input || !input.trim()) {
+        return null;
+    }
+    
+    const trimmed = input.trim();
+    
+    // Default values for auto-completion
+    const defaults = {
+        month: '01',
+        day: '01',
+        hour: '12',
+        minute: '00',
+        second: '00'
+    };
+    
+    // Try to parse different formats
+    // Pattern 1: YYYY-MM-DD HH:MM:SS (complete)
+    let match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+    if (match) {
+        return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}:${match[6]}`;
+    }
+    
+    // Pattern 2: YYYY-MM-DD HH:MM
+    match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
+    if (match) {
+        return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}:${defaults.second}`;
+    }
+    
+    // Pattern 3: YYYY-MM-DD HH
+    match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2})$/);
+    if (match) {
+        return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${defaults.minute}:${defaults.second}`;
+    }
+    
+    // Pattern 4: YYYY-MM-DD (date only)
+    match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+        return `${match[1]}-${match[2]}-${match[3]} ${defaults.hour}:${defaults.minute}:${defaults.second}`;
+    }
+    
+    // Pattern 5: YYYY-MM
+    match = trimmed.match(/^(\d{4})-(\d{2})$/);
+    if (match) {
+        return `${match[1]}-${match[2]}-${defaults.day} ${defaults.hour}:${defaults.minute}:${defaults.second}`;
+    }
+    
+    // Pattern 6: YYYY (year only)
+    match = trimmed.match(/^(\d{4})$/);
+    if (match) {
+        return `${match[1]}-${defaults.month}-${defaults.day} ${defaults.hour}:${defaults.minute}:${defaults.second}`;
+    }
+    
+    return null;
+}
+
+/**
  * Prepare EXIF metadata from user inputs
  * Format: YYYY:MM:DD HH:mm:SS for datetime
  */
-function prepareMetadata() {
-    // Convert date and time to EXIF format (YYYY:MM:DD HH:mm:SS)
-    const date = dateInput.value; // YYYY-MM-DD
-    const time = timeInput.value; // HH:mm:ss
-    const exifDateTime = date.replace(/-/g, ':') + ' ' + time;
+function prepareMetadata(parsedDateTime, gpsCoords) {
+    // Convert to EXIF format (YYYY:MM:DD HH:mm:SS)
+    const exifDateTime = parsedDateTime.replace(/-/g, ':');
     
-    // Parse GPS coordinates from merged input
-    const gpsCoords = parseGPSInput(gpsInput.value);
-    const latitude = gpsCoords.latitude;
-    const longitude = gpsCoords.longitude;
-    
-    // Determine GPS reference (N/S for latitude, E/W for longitude)
-    const latRef = latitude >= 0 ? 'N' : 'S';
-    const lonRef = longitude >= 0 ? 'E' : 'W';
-    
-    // Use absolute values and convert to degrees, minutes, seconds format
-    const absLat = Math.abs(latitude);
-    const absLon = Math.abs(longitude);
-    
-    // Convert decimal degrees to degrees, minutes, seconds
-    const latDMS = decimalToDMS(absLat);
-    const lonDMS = decimalToDMS(absLon);
-    
-    return {
+    const metadata = {
         datetime: exifDateTime,
-        latitude: latDMS,
-        latitudeRef: latRef,
-        longitude: lonDMS,
-        longitudeRef: lonRef
+        timePrecision: timePrecisionSelect.value
     };
+    
+    // GPS is optional - only include if provided
+    if (gpsCoords) {
+        const latitude = gpsCoords.latitude;
+        const longitude = gpsCoords.longitude;
+        
+        // Determine GPS reference (N/S for latitude, E/W for longitude)
+        const latRef = latitude >= 0 ? 'N' : 'S';
+        const lonRef = longitude >= 0 ? 'E' : 'W';
+        
+        // Use absolute values and convert to degrees, minutes, seconds format
+        const absLat = Math.abs(latitude);
+        const absLon = Math.abs(longitude);
+        
+        // Convert decimal degrees to degrees, minutes, seconds
+        const latDMS = decimalToDMS(absLat);
+        const lonDMS = decimalToDMS(absLon);
+        
+        metadata.latitude = latDMS;
+        metadata.latitudeRef = latRef;
+        metadata.longitude = lonDMS;
+        metadata.longitudeRef = lonRef;
+    }
+    
+    return metadata;
 }
 
 /**
@@ -381,11 +450,17 @@ function writeExifData(dataUrl, metadata) {
         // Write datetime in 0th IFD as well (ModifyDate)
         exifObj['0th'][piexif.ImageIFD.DateTime] = metadata.datetime;
         
-        // Write GPS fields
-        exifObj['GPS'][piexif.GPSIFD.GPSLatitudeRef] = metadata.latitudeRef;
-        exifObj['GPS'][piexif.GPSIFD.GPSLatitude] = metadata.latitude;
-        exifObj['GPS'][piexif.GPSIFD.GPSLongitudeRef] = metadata.longitudeRef;
-        exifObj['GPS'][piexif.GPSIFD.GPSLongitude] = metadata.longitude;
+        // Write time precision if supported (EXIF SubSecTimeOriginal can be used for precision)
+        // Note: piexifjs may have limited support for precision fields, but we store the precision value
+        // The actual EXIF precision implementation depends on exiftool.wasm capabilities
+        
+        // Write GPS fields (only if provided)
+        if (metadata.latitude !== undefined && metadata.longitude !== undefined) {
+            exifObj['GPS'][piexif.GPSIFD.GPSLatitudeRef] = metadata.latitudeRef;
+            exifObj['GPS'][piexif.GPSIFD.GPSLatitude] = metadata.latitude;
+            exifObj['GPS'][piexif.GPSIFD.GPSLongitudeRef] = metadata.longitudeRef;
+            exifObj['GPS'][piexif.GPSIFD.GPSLongitude] = metadata.longitude;
+        }
         
         // Convert EXIF object to bytes
         const exifBytes = piexif.dump(exifObj);

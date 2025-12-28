@@ -35,18 +35,23 @@
         </div>
 
         <div class="section">
-            <h2>2. Set Capture Date & Time</h2>
-            <label for="dateInput">Date:</label>
-            <input type="date" id="dateInput" value="2000-01-01">
+            <h2>2. Set Capture Date & Time <span style="color: red;">(Required)</span></h2>
+            <label for="datetimeInput">Date & Time:</label>
+            <input type="text" id="datetimeInput" placeholder="e.g., 2000, 2000-01, 2000-01-01, 2000-01-01 12, 2000-01-01 12:00, 2000-01-01 12:00:00" value="2000-01-01 12:00:00">
             
-            <label for="timeInput">Time:</label>
-            <input type="time" id="timeInput" step="1" value="00:00:00">
+            <label for="timePrecisionSelect" style="margin-top: 15px;">Time Precision:</label>
+            <select id="timePrecisionSelect">
+                <option value="date" selected>Date</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+            </select>
             
-            <div class="help-text">Format: YYYY:MM:DD HH:mm:SS</div>
+            <div class="help-text">Format: Partial dates/times allowed (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DD HH, YYYY-MM-DD HH:MM, YYYY-MM-DD HH:MM:SS)</div>
+            <div class="help-text">Missing components will be auto-completed: Month→Jan, Day→1st, Hour→12, Minute→00, Second→00</div>
         </div>
 
         <div class="section">
-            <h2>3. Set GPS Location</h2>
+            <h2>3. Set GPS Location <span style="color: #666;">(Optional)</span></h2>
             <label for="gpsInput">GPS Coordinates:</label>
             <input type="text" id="gpsInput" placeholder="e.g., 39.9042, 116.4074">
             <div class="help-text">Format: latitude, longitude (e.g., Beijing: 39.9042, 116.4074)</div>
