@@ -153,7 +153,21 @@ JPEG File
 
 ---
 
-## 6. Out of Scope
+## 6. SEO Optimization
+
+Appropriate SEO optimization is needed to improve search engine visibility and discoverability of the tool.
+
+SEO requirements:
+- Meta tags: title, description, keywords
+- Open Graph tags for social media sharing
+- Semantic HTML structure with proper heading hierarchy
+- Descriptive alt text for images (if any)
+- Proper language declaration
+- Descriptive page title and meta description
+
+---
+
+## 7. Out of Scope
 
 - PNG / TIFF support
 - Video files
