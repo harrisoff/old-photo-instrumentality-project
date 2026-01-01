@@ -123,6 +123,7 @@ GPS Input:
 GPS Coordinate Lookup:
 - Provide links to coordinate picker tools:
   - Baidu Maps Coordinate Picker: https://lbs.baidu.com/maptool/getpoint
+  - Tencent Maps Coordinate Picker: https://lbs.qq.com/getPoint/
   - Map Coordinates: https://www.mapcoordinates.net/
 - Users can search place names and get coordinates
 - Display as helpful tips on the page
